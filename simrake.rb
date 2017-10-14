@@ -5,8 +5,20 @@ class Task
 
   def initialize name, deps, &action
     @name = name
-    @deps = deps
+    if deps.instance_of? Array
+      @deps = deps
+    else
+      @deps = [deps]
+    end
     @action = action
+  end
+
+  def has_deps?
+    if deps != [:none]
+      true
+    else
+      false
+    end
   end
 
   def to_s
@@ -25,45 +37,53 @@ class SimRake
 
   # the root task is by default the default_task
   # this function is used if the task script have explicitly defined the default task
-#   def default_task task
-#     @default_task = task
-#   end
+  def default_task task
+    if @default_task.nil?
+      @default_task = task
+    end
+  end
 
+  # push deps reversly into stack
+  # return the stack
+  def push_deps_reversely deps, stack
+    rev = deps.reverse
+    rev.inject(stack) { |memo, obj| memo << obj }
+  end
+
+  # complete the root task using its dependencies
+  # use 2 stacks to trace the states
+  # firstly, push default_task to parse_stack
+  # secondly, pop from parse_stack and if it has dependencies,
+  # then push itself and all its dependencies
+  # to parse_stack, in addition, push itself to parent_stack
+  # if the parse_stack is empty, then our task has completed
   def complete_root_task
-    @tasks.each do |task|
-      @tasks[task[0]].each do |dep|
-        if dep.instance_of? Array
-          aux dep
+    # p @tasks[@default_task].deps
+    parse_stack = []
+    parent_stack = []
+
+    # push default_task
+    parse_stack << @tasks[@default_task].name
+
+    while not parse_stack.empty? do
+      temp = parse_stack.pop
+      if @tasks[temp].has_deps? and temp != parent_stack.last
+        parse_stack << @tasks[temp].name
+        push_deps_reversely @tasks[temp].deps, parse_stack
+        parent_stack.push temp
+
+        # debug info
+        # puts "parse_stack #{parse_stack}"
+        # puts "parent_stack #{parent_stack}"
+      else
+        @tasks[temp].action.call
+        if temp == parent_stack.last
+          parent_stack.pop
         end
       end
-      #task[1][1].call
-    end
-    @tasks.to_a[0][1][1].call
-  end
-
-  # call until find terminal (:none)
-  # if hash[dep] is not :none
-  # add dep to stack and then try hash[dep] whether is :none
-  # if it is, then pop from stack and call it, until the stack is empty
-  def aux dep
-    # only use push and pop to manipulate stack
-    stack = []
-
-    dep.each do |d|
-      stack << d
-      # puts d
-      temp = @tasks[d][0]
-      while temp != :none do
-        stack.push temp
-        temp = @tasks[temp][0]
-      end
-      # puts "stack #{stack}"
-
-      while stack != [] do
-        @tasks[stack.pop][1].call
-      end
     end
   end
+
 end
 
 $builder = SimRake.new
@@ -75,7 +95,9 @@ def task (hash, &action)
   # hash = {:pancake=>[:flour, :milk, :butter]}
   # arr = [[:pancake, [:flour, :milk, :butter]]]
   # which :pancake = arr[0][0], and its value is arr[0][1]
-  $builder.tasks[arr[0][0]] = [arr[0][1], action, arr[0][0]]
+  t = Task.new arr[0][0], arr[0][1], &action
+  $builder.tasks[arr[0][0]] = t
+  $builder.default_task arr[0][0]
 end
 
 load ARGV[0]  #load the script file which is passed in to simrake
