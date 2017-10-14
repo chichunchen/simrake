@@ -35,10 +35,11 @@ class SimRake
     @default_task
   end
 
-  # the root task is by default the default_task
-  # this function is used if the task script have explicitly defined the default task
+  # If :default exists then it is the root task
+  # If task :default is not defined in the script,
+  # then the first task defined is the root task.
   def default_task task
-    if @default_task.nil?
+    if @default_task.nil? or task == :default
       @default_task = task
     end
   end
@@ -50,7 +51,7 @@ class SimRake
     rev.inject(stack) { |memo, obj| memo << obj }
   end
 
-  # complete the root task using its dependencies
+  # complete the root task using its dependencies (should only complete root task!)
   # use 2 stacks to trace the states
   # firstly, push default_task to parse_stack
   # secondly, pop from parse_stack and if it has dependencies,
@@ -58,7 +59,6 @@ class SimRake
   # to parse_stack, in addition, push itself to parent_stack
   # if the parse_stack is empty, then our task has completed
   def complete_root_task
-    # p @tasks[@default_task].deps
     parse_stack = []
     parent_stack = []
 
@@ -76,6 +76,7 @@ class SimRake
         # puts "parse_stack #{parse_stack}"
         # puts "parent_stack #{parent_stack}"
       else
+        # invoke proc only if there is one
         if not @tasks[temp].action.nil?
           @tasks[temp].action.call
         end
