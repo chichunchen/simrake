@@ -76,7 +76,9 @@ class SimRake
         # puts "parse_stack #{parse_stack}"
         # puts "parent_stack #{parent_stack}"
       else
-        @tasks[temp].action.call
+        if not @tasks[temp].action.nil?
+          @tasks[temp].action.call
+        end
         if temp == parent_stack.last
           parent_stack.pop
         end
