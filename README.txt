@@ -1,2 +1,2 @@
 ## Execute
-./simrake `task_script`
+./simrake task_script.rb

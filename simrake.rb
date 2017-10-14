@@ -93,13 +93,19 @@ $builder = SimRake.new
 # register the task, its dependent tasks, and the
 # action at the builder object
 def task (hash, &action)
-  arr = hash.to_a
-  # hash = {:pancake=>[:flour, :milk, :butter]}
-  # arr = [[:pancake, [:flour, :milk, :butter]]]
-  # which :pancake = arr[0][0], and its value is arr[0][1]
-  t = Task.new arr[0][0], arr[0][1], &action
-  $builder.tasks[arr[0][0]] = t
-  $builder.default_task arr[0][0]
+  if hash.instance_of? Hash
+    arr = hash.to_a
+    # hash = {:pancake=>[:flour, :milk, :butter]}
+    # arr = [[:pancake, [:flour, :milk, :butter]]]
+    # which :pancake = arr[0][0], and its value is arr[0][1]
+    t = Task.new arr[0][0], arr[0][1], &action
+    $builder.tasks[arr[0][0]] = t
+    $builder.default_task arr[0][0]
+  else
+    t = Task.new hash, [:none], &action
+    $builder.tasks[hash] = t
+    $builder.default_task hash
+  end
 end
 
 load ARGV[0]  #load the script file which is passed in to simrake
