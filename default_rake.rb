@@ -1,5 +1,3 @@
-task default: [:pancake]
-
 task pancake: [:flour,:milk,:butter] do
   puts "sizzle."
 end
@@ -14,4 +12,8 @@ end
 
 task :milk do
   puts "add milk,"
+end
+
+task :default do
+  puts "gg"
 end

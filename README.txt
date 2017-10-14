@@ -1,2 +1,5 @@
 ## Execute
-./simrake task_script.rb
+./simrake complex_rake.rb
+
+### Compare to rake
+rake --rakefile complex_rake.rb

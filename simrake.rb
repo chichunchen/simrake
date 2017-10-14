@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'set'
+
 class Task
   attr_accessor :name, :deps, :action
 
@@ -61,6 +63,7 @@ class SimRake
   def complete_root_task
     parse_stack = []
     parent_stack = []
+    done = Set.new
 
     # push default_task
     parse_stack << @tasks[@default_task].name
@@ -77,8 +80,9 @@ class SimRake
         # puts "parent_stack #{parent_stack}"
       else
         # invoke proc only if there is one
-        if not @tasks[temp].action.nil?
+        if not @tasks[temp].action.nil? and not done.include? temp
           @tasks[temp].action.call
+          done.add temp
         end
         if temp == parent_stack.last
           parent_stack.pop
