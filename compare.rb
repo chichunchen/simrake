@@ -1,13 +1,3 @@
-## Execute
-./simrake complex_rake.rb
-
-### Compare to rake
-rake --rakefile complex_rake.rb
-
-### Test Auto testing
-- Test the correctness of simrake using `./simrake.rb compare` automatically.
-- Pipe the output of simrake and rake to two different txt file, and then diff two of the file.
-```
 task default: [:default_rake, :task_script] do
     puts "if no output of diff, then it'a all correct"
     puts "end of compare"
@@ -26,9 +16,3 @@ task :task_script do
     system 'diff correct.txt output.txt'
     system 'rm correct.txt output.txt'
 end
-```
-- output
-```
-if no output of diff, then it'a all correct
-end of compare
-```
