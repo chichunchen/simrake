@@ -6,7 +6,23 @@ simulate the behavior of rake
 - Implemented the file/time dependence of file tasks that is present in standard rake
 
 ## Execute test scripts
-`./simrake.rb tests/task/complex_rake.rb`, `./simrake.rb tests/file/file_test_1.rb`
+`./simrake.rb tests/task/complex_rake.rb`
+`./simrake.rb tests/file/file_test_1.rb`
+`./simrake.rb tests/file/real_world.rb`
+- for all the tests scripts, you can find in tests dir
+```
+tests
+├── file
+│   ├── file_test_1.rb
+│   ├── file_test_2.rb
+│   ├── file_test_3.rb
+│   └── real_world.rb
+└── task
+    ├── compare.rb
+    ├── complex_rake.rb
+    ├── default_rake.rb
+    └── task_script.rb
+```
 
 ### Compare to rake
 `rake --rakefile tests/task/complex_rake.rb`
