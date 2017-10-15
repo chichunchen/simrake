@@ -1,32 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'set'
-
-class Task
-  attr_accessor :name, :deps, :action
-
-  def initialize name, deps, &action
-    @name = name
-    if deps.instance_of? Array
-      @deps = deps
-    else
-      @deps = [deps]
-    end
-    @action = action
-  end
-
-  def has_deps?
-    if deps != [:none]
-      true
-    else
-      false
-    end
-  end
-
-  def to_s
-    "name: #{@name}\ndeps:#{@deps}\naction: #{@action}"
-  end
-end
+require_relative './task.rb'
 
 class SimRake
   attr_accessor :tasks, :default_task
@@ -91,6 +66,8 @@ class SimRake
     end
   end
 
+  def complete_root_file
+  end
 end
 
 $builder = SimRake.new
@@ -113,6 +90,58 @@ def task (hash, &action)
   end
 end
 
+def file (obj, &action)
+  include FileUtils
+
+  if obj.instance_of? Hash
+    arr = obj.to_a
+    root = arr[0][0]
+
+    if not File.exists? root
+      t = Task.new root, [:none], &action
+      FileUtils.touch root
+    else
+      root_change_time = File.ctime root
+      dep_files = arr[0][1]
+
+      if dep_files.instance_of? Array
+        p = dep_files.reduce(false) do |acc, e|
+          unless File.exists?(e) then FileUtils.touch(e) end
+          true if File.ctime(e) > root_change_time
+        end
+        if p
+          t = Task.new root, [:none], &action
+          #puts "dep newer than root"
+        else
+          t = Task.new root, [:none]
+          #puts "dep older than root"
+        end
+      else
+        unless File.exists?(dep_files) then FileUtils.touch(dep_files) end
+        dep_change_time = File.ctime dep_files
+        if dep_change_time > root_change_time
+          t = Task.new root, [:none], &action
+          #puts "dep newer than root"
+        else
+          t = Task.new root, [:none]
+          #puts "dep older than root"
+        end
+      end
+    end
+    $builder.tasks[root] = t
+  else
+    if File.exists? obj
+      t = FileTask.new obj, [:none]
+    else
+      FileUtils.touch obj
+      t = FileTask.new obj, [:none], &action
+    end
+    $builder.tasks[obj] = t
+  end
+end
+
 load ARGV[0]  #load the script file which is passed in to simrake
+
+# puts $builder.tasks
 
 $builder.complete_root_task
