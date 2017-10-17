@@ -65,28 +65,41 @@ class SimRake
       end
     end
   end
-
-  def complete_root_file
-  end
 end
 
 $builder = SimRake.new
 
 # register the task, its dependent tasks, and the
 # action at the builder object
-def task (hash, &action)
-  if hash.instance_of? Hash
-    arr = hash.to_a
+def task (obj, &action)
+  if obj.instance_of? Hash
     # hash = {:pancake=>[:flour, :milk, :butter]}
     # arr = [[:pancake, [:flour, :milk, :butter]]]
-    # which :pancake = arr[0][0], and its value is arr[0][1]
-    t = Task.new arr[0][0], arr[0][1], &action
-    $builder.tasks[arr[0][0]] = t
-    $builder.default_task arr[0][0]
+    arr = obj.to_a
+    root = arr[0][0]
+    value = arr[0][1]
+
+    t = Task.new root, value, &action
+    $builder.tasks[root] = t
+    $builder.default_task root
   else
-    t = Task.new hash, [:none], &action
-    $builder.tasks[hash] = t
-    $builder.default_task hash
+    key = obj
+
+    # merge proc for multiple task defined
+    if $builder.tasks.has_key? key
+      t = $builder.tasks[key]
+      oldproc = t.action
+      newproc = Proc.new do
+        oldproc.call()
+        action.call()
+      end
+      t.action = newproc
+    else
+      t = Task.new key, [:none], &action
+    end
+
+    $builder.tasks[key] = t
+    $builder.default_task key
   end
 end
 
