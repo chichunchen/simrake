@@ -21,13 +21,6 @@ class SimRake
     end
   end
 
-  # push deps reversly into stack
-  # return the stack
-  def push_deps_reversely deps, stack
-    rev = deps.reverse
-    rev.inject(stack) { |memo, obj| memo << obj }
-  end
-
   # complete the root task using its dependencies (should only complete root task!)
   # use 2 stacks to trace the states
   # firstly, push default_task to parse_stack
@@ -63,8 +56,29 @@ class SimRake
           parent_stack.pop
         end
       end
+
+      # terminate the task if circular detected
+      if parse_stack.uniq != parse_stack
+        puts "simrake aborted!"
+        print "Circular dependency detected: TOP"
+        parse_stack.pop
+        parse_stack.each do |e|
+          print " => #{e}"
+        end
+        puts ""
+        exit (1)
+      end
     end
   end
+
+  private
+
+    # push deps reversly into stack
+    # return the stack
+    def push_deps_reversely deps, stack
+      rev = deps.reverse
+      rev.inject(stack) { |memo, obj| memo << obj }
+    end
 end
 
 $builder = SimRake.new
