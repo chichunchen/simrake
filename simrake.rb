@@ -58,7 +58,7 @@ class SimRake
       end
 
       # terminate the task if circular detected
-      if parse_stack.uniq != parse_stack
+      if parent_stack.uniq != parent_stack
         puts "simrake aborted!"
         print "Circular dependency detected: TOP"
         parse_stack.pop
