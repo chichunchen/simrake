@@ -86,20 +86,10 @@ $builder = SimRake.new
 # register the task, its dependent tasks, and the
 # action at the builder object
 def task (obj, &action)
-  if obj.instance_of? Hash
-    # hash = {:pancake=>[:flour, :milk, :butter]}
-    # arr = [[:pancake, [:flour, :milk, :butter]]]
-    arr = obj.to_a
-    root = arr[0][0]
-    value = arr[0][1]
-
-    t = Task.new root, value, &action
-    $builder.tasks[root] = t
-    $builder.default_task root
-  else
-    key = obj
-
-    # merge proc for multiple task defined
+  # return task object
+  # merge proc if multiple task defined
+  # since this function depends on $builder, therefore not put in task class
+  def create_task key, value, action
     if $builder.tasks.has_key? key
       t = $builder.tasks[key]
       oldproc = t.action
@@ -108,11 +98,24 @@ def task (obj, &action)
         action.call()
       end
       t.action = newproc
+      t.deps |= value
+      t
     else
-      t = Task.new key, [:none], &action
+      t = Task.new key, value, &action
     end
+  end
 
-    $builder.tasks[key] = t
+  if obj.instance_of? Hash
+    # hash = {:pancake=>[:flour, :milk, :butter]}
+    # arr = [[:pancake, [:flour, :milk, :butter]]]
+    arr = obj.to_a
+    root, value = arr[0][0], arr[0][1]
+    $builder.tasks[root] = create_task root, value, action
+    $builder.default_task root
+  else
+    # key is symbol or string
+    key = obj
+    $builder.tasks[key] = create_task key, [:none], action
     $builder.default_task key
   end
 end
