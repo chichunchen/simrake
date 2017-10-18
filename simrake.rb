@@ -115,7 +115,7 @@ def task (obj, &action)
   else
     # key is symbol or string
     key = obj
-    $builder.tasks[key] = create_task key, [:none], action
+    $builder.tasks[key] = create_task key, [], action
     $builder.default_task key
   end
 end
@@ -128,7 +128,7 @@ def file (obj, &action)
     root = arr[0][0]
 
     if not File.exists? root
-      t = Task.new root, [:none], &action
+      t = Task.new root, [], &action
       FileUtils.touch root
     else
       root_change_time = File.ctime root
@@ -140,20 +140,20 @@ def file (obj, &action)
           true if File.ctime(e) > root_change_time
         end
         if p
-          t = Task.new root, [:none], &action
+          t = Task.new root, [], &action
           #puts "dep newer than root"
         else
-          t = Task.new root, [:none]
+          t = Task.new root, []
           #puts "dep older than root"
         end
       else
         unless File.exists?(dep_files) then FileUtils.touch(dep_files) end
         dep_change_time = File.ctime dep_files
         if dep_change_time > root_change_time
-          t = Task.new root, [:none], &action
+          t = Task.new root, [], &action
           #puts "dep newer than root"
         else
-          t = Task.new root, [:none]
+          t = Task.new root, []
           #puts "dep older than root"
         end
       end
@@ -161,10 +161,10 @@ def file (obj, &action)
     $builder.tasks[root] = t
   else
     if File.exists? obj
-      t = FileTask.new obj, [:none]
+      t = FileTask.new obj, []
     else
       FileUtils.touch obj
-      t = FileTask.new obj, [:none], &action
+      t = FileTask.new obj, [], &action
     end
     $builder.tasks[obj] = t
   end

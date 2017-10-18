@@ -14,7 +14,7 @@ class Task
   end
 
   def has_deps?
-    if deps != [:none]
+    if deps != []
       true
     else
       false
